@@ -29,6 +29,7 @@ namespace TrifleJS.API.Modules
             this.browser.ScrollBarsEnabled = false;
             // Add WebBrowser external scripting support
             this.browser.DocumentCompleted += DocumentCompleted;
+            this.browser.Navigated += Navigated;
             this.browser.Navigate("about:blank");
             while (loading)
             {
@@ -525,14 +526,6 @@ namespace TrifleJS.API.Modules
                 {
                     // Set current frame
                     switchToMainFrame();
-                    // Add IE Toolset
-                    AddToolset();
-                    // Track unhandled errors
-                    browser.Document.Window.Error += delegate(object obj, HtmlElementErrorEventArgs e)
-                    {
-                        Handle(e.Description, e.LineNumber, e.Url);
-                        e.Handled = true;
-                    };
                     // Execute callback at top of the stack
                     RemoveCallback();
                 });
@@ -549,10 +542,18 @@ namespace TrifleJS.API.Modules
         {
             if (browser != null)
             {
+                // Set current frame
+                switchToMainFrame();
+                // Add IE Toolset
+                AddToolset();
+                // Track unhandled errors
+                browser.Document.Window.Error += delegate(object obj, HtmlElementErrorEventArgs e)
+                {
+                    Handle(e.Description, e.LineNumber, e.Url);
+                    e.Handled = true;
+                };
                 if (!String.IsNullOrEmpty(_onInitializedCallbackId))
                 {
-                    // Set current frame
-                    switchToMainFrame();
                     Callback.ExecuteOnce(_onInitializedCallbackId, null);
                 }
             }
